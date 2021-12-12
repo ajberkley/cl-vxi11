@@ -39,8 +39,8 @@
    Until quicklisp is updated, you will need to go into your local quicklisp
    directory, typically ~/quicklisp/local-projects and run:
 
-   git clone https://github.com/ajberkley/frpc2.git
-   git clone https://github.com/ajberkley/fsocket.git
+   git clone https://github.com/fjames86/frpc2.git
+   git clone https://github.com/fjames86/fsocket.git
    git clone https://github.com/fjames86/dragons.git
    git clone https://github.com/fjames86/drx.git
 
