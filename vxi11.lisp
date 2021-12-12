@@ -44,7 +44,7 @@
    git clone https://github.com/fjames86/dragons.git
    git clone https://github.com/fjames86/drx.git
 
-   and at the REPL (quicklisp:quickload :pounds).")
+   and at the REPL (quicklisp:quickload :vxi11).")
   (:use :drx :frpc2 :common-lisp)
   (:export
    #:vxi11-flush-incoming-data
@@ -247,12 +247,13 @@
        ,@body)))
 
 (defun setup-vxi11-finalizer (vxi11-conn lid client)
-  (finalize vxi11-conn (lambda ()
-                         (handler-case
-                             (progn
-                               (call-device-core-destroy-link client lid)
-                               (rpc-client-close client))
-                           (error ())))))
+  (trivial-garbage:finalize
+   vxi11-conn (lambda ()
+                (handler-case
+                    (progn
+                      (call-device-core-destroy-link client lid)
+                      (rpc-client-close client))
+                  (error ())))))
 
 (defun vxi11-connect (&key (host "tektronix-awg5208.dwavesys.local") (device "inst0") extant-vxi11-conn
                         (timeout 10000))
@@ -283,7 +284,7 @@
           ;; Update our buffer size so we can send the max they can receive
           (setf (frpc2::rpc-client-block (vxi11-conn-client vxi11-conn)) (xdr-block max-recv-size))
           (when extant-vxi11-conn
-            (cancel-finalization vxi11-conn))
+            (trivial-garbage:cancel-finalization vxi11-conn))
           (setup-vxi11-finalizer vxi11-conn lid client)
           vxi11-conn)
       (error (e) (format t "Error on connect ~A!~%" e) (rpc-client-close client)))))
@@ -295,7 +296,7 @@
   (assert (typep vxi11-conn 'vxi11-conn))
   (call-device-core-destroy-link (vxi11-conn-client vxi11-conn) (vxi11-conn-lid vxi11-conn))
   (rpc-client-close (vxi11-conn-client vxi11-conn))
-  (cancel-finalization vxi11-conn))
+  (trivial-garbage:cancel-finalization vxi11-conn))
 
 ;; TODO, add error handling which will reconnect the vxi11-conn (see vxi11-connect :extant-vxi11-conn).  Need to find
 ;; out what errors are thrown (some fsocket error presumably?)
@@ -333,8 +334,7 @@
     (loop for char = (aref raw-result (1- length))
           while (and (or (= char +newline+) (= char +return+)) (not (zerop length)))
           do (decf length))
-    (map-into #-sbcl(make-string length)
-              #+sbcl(make-array length :element-type 'base-char) #'code-char raw-result)))
+    (map-into (make-string length :element-type 'base-char) #'code-char raw-result)))
 
 (defun vxi11-write/raw (vxi11-conn data &optional (io-timeout 10000))
   (with-vxi11 (lid conn vxi11-conn)
@@ -347,7 +347,7 @@
 
 (defun vxi11-write (vxi11-conn data &optional (io-timeout 10000))
   (assert (or (stringp data) (typep data '(simple-array (unsigned-byte 8) (*)))))
-  (vxi11-write/raw vxi11-conn (if (stringp data) (string-to-octets data) data) io-timeout))
+  (vxi11-write/raw vxi11-conn (if (stringp data) (babel:string-to-octets data) data) io-timeout))
 
 (defun vxi11-query/string (vxi11-conn query-string &key (max-response-length 20480) (io-timeout 10000))
   (vxi11-write vxi11-conn (concatenate 'string query-string (list #\Newline)))
