@@ -2,23 +2,32 @@
 Native VXI11 in Common Lisp for talking to instruments
 
 # Dependencies
-FRPC2, FSOCKET, DRAGONS, DRX, POUNDS
 
-For now you want to
-    git clone https://github.com/ajberkley/frpc2.git
-    git clone https://github.com/ajberkley/fsocket.git
+## Direct
+
+FRPC2, DRX, TRIVIAL-GARBAGE, BABEL
+
+## Indirect
+
+FSOCKET, DRAGONS, DRX, POUNDS, NIBBLES
+
+## Installing dependencies
+
+For now you want to go to your quicklisp local projects directory
+    cd ~/quicklisp/local-projects
+    git clone https://github.com/fjames86/frpc2.git
+    git clone https://github.com/fjames86/fsocket.git
     git clone https://github.com/fjames86/dragons.git
     git clone https://github.com/fjames86/drx.git
 
-and at the REPL run
-    (quicklisp:quickload :pounds)
-
 # TODO / features to add
 
-* Reconnecting after a dropped / lost connection
+* Detecting / reconnecting after a dropped / lost connection
 * Implement DEVICE_INTR for SRQ (I have not run into a use case for this)
 
 # Usage
+
+    (quicklisp:quickload "vxi11")
 
     (defparameter *my-instr*
       (vxi11:vxi11-connect :host "your-instrument-hostname" :device "inst0"))
