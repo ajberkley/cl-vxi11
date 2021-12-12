@@ -255,7 +255,7 @@
                       (rpc-client-close client))
                   (error ())))))
 
-(defun vxi11-connect (&key (host "tektronix-awg5208.dwavesys.local") (device "inst0") extant-vxi11-conn
+(defun vxi11-connect (&key (host "tektronix-awg5208") (device "inst0") extant-vxi11-conn
                         (timeout 10000))
   "If extant-vxi11-conn is provided, will reconnect it. Used for the case where the TCP connection get dropped.
    we do not setup an abort or interrupt connection... not needed by any users yet.  Provide a port otherwise will
