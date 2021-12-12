@@ -265,29 +265,31 @@
          (addr (get-rpc-address +device-core-pgm+ +device-core-ver+ host :tcp))
          (client (make-instance 'frpc2:tcp-client :addr addr :provider nil ;; no authentication
                                 :timeout timeout :block (xdr-block (* 1024 32))))) ;; maybe bigger block size?
-    (setf (fsocket:socket-option (frpc2::tcp-client-fd client) :tcp :nodelay) t) ;; also quickack
-    (handler-case
-        (let* ((create-link-resp (vxi11-check-error
-                                  (call-device-core-create-link
-                                   client
-                                   (make-create-link-parms :client-id 0 :lock-timeout 1000 :device device))))
-               (lid (create-link-resp-lid create-link-resp))
-               (max-recv-size (create-link-resp-max-recv-size create-link-resp))
-               (vxi11-conn (if extant-vxi11-conn
-                               (progn
-                                 (setf (vxi11-conn-lid extant-vxi11-conn) lid)
-                                 (setf (vxi11-conn-client extant-vxi11-conn) client)
-                                 (setf (vxi11-conn-max-recv-size extant-vxi11-conn) max-recv-size)
-                                 extant-vxi11-conn)
-                               (make-vxi11-conn :lid lid :client client :device device
-                                                :max-recv-size max-recv-size :host host))))
-          ;; Update our buffer size so we can send the max they can receive
-          (setf (frpc2::rpc-client-block (vxi11-conn-client vxi11-conn)) (xdr-block max-recv-size))
-          (when extant-vxi11-conn
-            (trivial-garbage:cancel-finalization vxi11-conn))
-          (setup-vxi11-finalizer vxi11-conn lid client)
-          vxi11-conn)
-      (error (e) (format t "Error on connect ~A!~%" e) (rpc-client-close client)))))
+    (setf (fsocket:socket-option (frpc2::tcp-client-fd client) :tcp :nodelay) t)
+    (handler-bind
+        ((error (lambda (e)
+                  (declare (ignore e))
+                  (handler-case (rpc-client-close client) (error ())))))
+      (let* ((create-link-resp (vxi11-check-error
+                                (call-device-core-create-link
+                                 client
+                                 (make-create-link-parms :client-id 0 :lock-timeout 1000 :device device))))
+             (lid (create-link-resp-lid create-link-resp))
+             (max-recv-size (create-link-resp-max-recv-size create-link-resp))
+             (vxi11-conn (if extant-vxi11-conn
+                             (progn
+                               (setf (vxi11-conn-lid extant-vxi11-conn) lid)
+                               (setf (vxi11-conn-client extant-vxi11-conn) client)
+                               (setf (vxi11-conn-max-recv-size extant-vxi11-conn) max-recv-size)
+                               extant-vxi11-conn)
+                             (make-vxi11-conn :lid lid :client client :device device
+                                              :max-recv-size max-recv-size :host host))))
+        ;; Update our buffer size so we can send the max they can receive
+        (setf (frpc2::rpc-client-block (vxi11-conn-client vxi11-conn)) (xdr-block max-recv-size))
+        (when extant-vxi11-conn
+          (trivial-garbage:cancel-finalization vxi11-conn))
+        (setup-vxi11-finalizer vxi11-conn lid client)
+        vxi11-conn))))
 
 (defun vxi11-disconnect (vxi11-conn)
   "You do not have to explicitly close the connection as it will go away when garbage collected,
