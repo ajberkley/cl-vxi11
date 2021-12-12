@@ -14,6 +14,7 @@ FSOCKET, DRAGONS, DRX, POUNDS, NIBBLES
 ## Installing dependencies
 
 For now you want to go to your quicklisp local projects directory
+
     cd ~/quicklisp/local-projects
     git clone https://github.com/fjames86/frpc2.git
     git clone https://github.com/fjames86/fsocket.git
