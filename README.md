@@ -21,8 +21,7 @@ and at the REPL run
 # Usage
 
     (defparameter *my-instr*
-      (vxi11:vxi11-connect :host "tektronix-awg5208.your-domain.com"
-                              :device "inst0"))
+      (vxi11:vxi11-connect :host "your-instrument-hostname" :device "inst0"))
 
     (vxi11:vxi11-query/string *my-instr* "*IDN?")
 
