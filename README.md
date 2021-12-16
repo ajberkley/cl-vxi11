@@ -25,6 +25,7 @@ For now you want to go to your quicklisp local projects directory
 
 * Detecting / reconnecting after a dropped / lost connection
 * Implement DEVICE_INTR for SRQ (I have not run into a use case for this)
+* Add broadcast for instrument discovery
 
 # Usage
 
